@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WhatsApp Number Age Check</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #f5f7fa;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: green;
+    }
+    #error {
+      margin-top: 20px;
+      font-size: 18px;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+<h2>WhatsApp Number Age Check</h2>
+
+<p>Select your WhatsApp exported chat (.txt file):</p>
+<input type="file" id="fileInput">
+
+<p id="result"></p>
+<p id="error"></p>
+
+<script>
+document.getElementById("fileInput").addEventListener("change", function() {
+    const file = this.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const text = e.target.result;
+
+        // WhatsApp exported format detection
+        const match = text.match(/(\d{1,2}\/\d{1,2}\/\d{2,4}), (\d{1,2}:\d{2})/);
+
+        if (!match) {
+            document.getElementById("error").innerHTML =
+                "Error: Correct WhatsApp .txt format not detected.";
+            return;
+        }
+
+        let date = match[1];
+        document.getElementById("error").innerHTML = "";
+        document.getElementById("result").innerHTML =
+            "This WhatsApp number started chat on: <br><b>" + date + "</b>";
+    };
+
+    reader.readAsText(file);
+});
+</script>
+
+</body>
+</html>
