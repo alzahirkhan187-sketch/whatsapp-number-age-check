@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WhatsApp Number Age Checker | Powered by Alzahir Khan</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #0b132b, #1c2541, #3a506b);
+        color: white;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        transition: 0.4s;
+    }
+
+    /* Neon Mode */
+    .neon {
+        background: black !important;
+        color: #00eaff !important;
+        text-shadow: 0 0 8px #00eaff;
+    }
+
+    /* Header */
+    .header {
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 0 25px rgba(0,0,0,0.4);
+    }
+
+    .header img {
+        width: 60px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        box-shadow: 0 0 12px rgba(255,255,255,0.5);
+    }
+
+    .header h1 {
+        margin: 0;
+        font-size: 27px;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+
+    /* Main Box */
+    .box {
+        width: 90%;
+        max-width: 500px;
+        margin: 25px auto;
+        padding: 25px;
+        border-radius: 15px;
+        background: rgba(255,255,255,0.1);
+        box-shadow: 0 0 20px rgba(0,0,0,0.4);
+        animation: fadeIn 0.7s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {opacity: 0; transform: scale(0.95);}
+        to {opacity: 1; transform: scale(1);}
+    }
+
+    input[type="file"] {
+        padding: 10px;
+        background-color: #3a506b;
+        border-radius: 10px;
+        border: none;
+        color: #fff;
+        font-size: 14px;
+    }
+
+    .btn {
+        margin-top: 15px;
+        padding: 12px 25px;
+        background-color: #5bc0be;
+        border: none;
+        color: black;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .btn:hover {
+        background-color: #3aafa9;
+        transform: scale(1.05);
+    }
+
+    /* Language Selector */
+    .lang-select {
+        margin-top: 10px;
+        background: #3a506b;
+        border: none;
+        color: white;
+        padding: 7px;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    /* Toggle Neon Mode */
+    .toggle {
+        margin-top: 15px;
+        background: #00eaff;
+        padding: 8px 18px;
+        border-radius: 12px;
+        color: black;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    /* Result Box */
+    .result {
+        margin-top: 20px;
+        padding: 18px;
+        background: rgba(0,0,0,0.4);
+        border-radius: 10px;
+        display: none;
+        font-size: 19px;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    /* History */
+    .history {
+        margin-top: 25px;
+        background: rgba(255,255,255,0.08);
+        padding: 15px;
+        border-radius: 10px;
+        display: none;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    /* Loader */
+    .loader {
+        margin: 20px auto;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #5bc0be;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        animation: spin 1s linear infinite;
+        display: none;
+    }
+
+    @keyframes spin {
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Footer */
+    .footer {
+        margin-top: 40px;
+        padding: 15px;
+        background: rgba(255,255,255,0.05);
+        font-size: 14px;
+        color: #ddd;
+    }
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <img src="https://i.postimg.cc/3xwLGx5w/logo.png">
+    <h1 id="title">WhatsApp Number Age Checker</h1>
+</div>
+
+<div class="box">
+
+    <select class="lang-select" id="lang" onchange="changeLanguage()">
+        <option value="en">English</option>
+        <option value="ur">Urdu</option>
+    </select>
+
+    <div class="toggle" onclick="toggleNeon()">🌟 Neon Mode</div>
+
+    <h3 id="uploadText">Upload WhatsApp Chat (.txt)</h3>
+
+    <input type="file" id="chatFile" accept=".txt"><br><br>
+
+    <button class="btn" onclick="checkAge()">Check Account Age</button>
+
+    <div class="loader" id="loader"></div>
+
+    <div class="result" id="resultBox"></div>
+</div>
+
+<div class="history" id="historyBox">
+    <h3>Previous Results:</h3>
+    <ul id="historyList" style="text-align:left; padding-left:20px;"></ul>
+</div>
+
+<div class="footer">
+    Powered by <b>Alzahir Khan</b> | © 2025 All Rights Reserved
+</div>
+
+<script>
+
+function toggleNeon() {
+    document.body.classList.toggle("neon");
+}
+
+function changeLanguage() {
+    let lang = document.getElementById("lang").value;
+
+    if (lang === "ur") {
+        document.getElementById("title").innerText = "واٹس ایپ نمبر عمر چیک";
+        document.getElementById("uploadText").innerText = "واٹس ایپ چیٹ اپلوڈ کریں (.txt)";
+    } else {
+        document.getElementById("title").innerText = "WhatsApp Number Age Checker";
+        document.getElementById("uploadText").innerText = "Upload WhatsApp Chat (.txt)";
+    }
+}
+
+function checkAge() {
+    const fileInput = document.getElementById("chatFile");
+    const loader = document.getElementById("loader");
+    const resultBox = document.getElementById("resultBox");
+    const historyBox = document.getElementById("historyBox");
+
+    if (!fileInput.files.length) {
+        alert("Upload WhatsApp .txt file!");
+        return;
+    }
+
+    const file = fileInput.files[0];
+
+    loader.style.display = "block";
+    resultBox.style.display = "none";
+
+    setTimeout(() => {
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+            const text = event.target.result;
+
+            const regex = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),/m;
+            const match = text.match(regex);
+
+            loader.style.display = "none";
+
+            if (!match) {
+                resultBox.style.display = "block";
+                resultBox.innerHTML = "❌ Invalid Chat File Format!";
+                return;
+            }
+
+            const firstDate = match[1];
+            resultBox.style.display = "block";
+            resultBox.innerHTML = `✔️ Active Since: <b>${firstDate}</b>`;
+
+            // Add to history
+            let li = document.createElement("li");
+            li.innerText = `Account Active Since: ${firstDate}`;
+            document.getElementById("historyList").appendChild(li);
+
+            historyBox.style.display = "block";
+        };
+
+        reader.readAsText(file);
+    }, 1500);
+}
+
+</script>
+
+</body>
+</html>
