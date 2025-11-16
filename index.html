@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>WHATSAPP AGE CHECK — HACKER EDITION</title>
+
+<!-- External libs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* === Colors & theme === */
+  :root{
+    --bg:#020304;
+    --panel: rgba(0,0,0,0.6);
+    --neon: #00ff9c;
+    --neon-2: #09d6ff;
+    --glass: rgba(255,255,255,0.03);
+    --muted: #8fdff0;
+  }
+  html,body{height:100%; margin:0; background:#000; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{color: #bff7ef; background: linear-gradient(180deg,#000 0%, #05060a 100%); overflow-y:auto;}
+
+  /* Matrix rain canvas sits behind everything */
+  #matrixCanvas {
+    position:fixed; left:0; top:0; width:100%; height:100%; z-index:0; pointer-events:none;
+    opacity:0.55;
+  }
+
+  /* Main container (HUD) */
+  .app{
+    position:relative; z-index:2;
+    max-width:1100px; margin:28px auto; padding:20px;
+  }
+
+  .header{
+    display:flex; align-items:center; gap:16px; margin-bottom:18px;
+  }
+  .logoBox{
+    width:84px; height:84px; border-radius:12px;
+    background: linear-gradient(135deg,var(--neon),var(--neon-2));
+    box-shadow: 0 8px 40px rgba(0,255,170,0.06), inset 0 -6px 18px rgba(0,0,0,0.4);
+    display:flex; align-items:center; justify-content:center; color:#001; font-weight:700; font-family: 'Share Tech Mono', monospace;
+    letter-spacing:1px; font-size:18px;
+  }
+  .title{
+    font-family: 'Share Tech Mono', monospace;
+    font-size:20px; letter-spacing:2px; color:var(--neon); text-shadow:0 0 12px rgba(0,255,150,0.2);
+  }
+  .subtitle{ color:var(--muted); font-size:13px; }
+
+  /* grid & panels */
+  .grid{
+    display:grid; grid-template-columns: 1fr 420px; gap:18px;
+  }
+  .panel{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px; padding:14px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    border: 1px solid rgba(0,255,150,0.06);
+  }
+
+  /* Neon / terminal text */
+  h2{ font-family:'Share Tech Mono', monospace; color:var(--neon); margin:0 0 8px; font-size:16px; text-shadow:0 0 10px rgba(0,255,150,0.08); }
+  .muted{ color: #9feff0; opacity:0.85; font-size:13px; }
+
+  /* controls */
+  .controls{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:8px; }
+  input[type=file]{ background:var(--glass); color:inherit; padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); }
+  button.btn{ background:transparent; border:1px solid rgba(0,255,150,0.16); color:var(--neon); padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; }
+  button.btn:hover{ box-shadow: 0 6px 24px rgba(0,255,150,0.06), 0 0 18px rgba(0,255,150,0.03); transform:translateY(-1px); }
+
+  select.lang{ padding:8px; border-radius:8px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.03); color:inherit; }
+
+  /* stats & badges */
+  .badges{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .badge{ background:rgba(0,0,0,0.45); padding:8px 10px; border-radius:8px; border:1px solid rgba(0,255,150,0.06); color:var(--neon); font-weight:600; }
+
+  /* charts */
+  canvas{ width:100%!important; height:220px!important; }
+
+  /* history */
+  .history{ max-height:160px; overflow:auto; padding-left:16px; font-size:13px; color:#9ff7ee; }
+
+  /* footer */
+  .footer{ text-align:center; color:#8bdfe8; margin-top:18px; font-size:13px; }
+
+  /* typing effect */
+  .typing{ font-family:'Share Tech Mono', monospace; color:var(--neon); white-space:nowrap; overflow:hidden; border-right:2px solid rgba(0,255,150,0.6); width:100%; display:inline-block; box-sizing:border-box; animation: typing 3.6s steps(36) 1, blink 1s step-end infinite; }
+  @keyframes typing{ from{ width:0 } to{ width:100% } }
+  @keyframes blink{ 50%{ border-color: transparent } }
+
+  /* matrix HUD lines */
+  .hud{ border-radius:10px; padding:10px; background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.25)); border:1px solid rgba(0,255,150,0.04); }
+
+  /* responsive */
+  @media (max-width:980px){
+    .grid{ grid-template-columns: 1fr; }
+    canvas{ height:200px!important; }
+  }
+
+</style>
+</head>
+<body>
+  <!-- matrix animated canvas behind everything -->
+  <canvas id="matrixCanvas"></canvas>
+
+  <div class="app" role="main">
+    <div class="header">
+      <div class="logoBox">WA</div>
+      <div>
+        <div class="title">WHATSAPP NUMBER AGE CHECK — HACKER EDITION</div>
+        <div class="subtitle">Local analysis • Private • Powered by <strong>Alzahir Khan</strong></div>
+      </div>
+    </div>
+
+    <div class="panel hud">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div style="flex:1 1 480px;">
+          <div class="typing" id="typingHeading">Matrix Scanner — Drop exported WhatsApp chat (.txt) or choose file</div>
+          <div class="muted" style="margin-top:8px;">Supported formats: exported WhatsApp chat .txt (common date formats auto-detected)</div>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="lang" class="lang">
+            <option value="en">EN</option>
+            <option value="ur">اردو</option>
+          </select>
+          <input id="fileInput" type="file" accept=".txt" />
+          <button id="scanBtn" class="btn">SCAN</button>
+          <button id="exportBtn" class="btn">EXPORT PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:16px;">
+      <!-- left: analytics -->
+      <div>
+        <div class="panel hud" style="margin-bottom:14px;">
+          <h2>Realtime HUD</h2>
+          <div class="badges" id="topBadges">
+            <div class="badge">Status: Idle</div>
+            <div class="badge">Mode: Hacker</div>
+            <div class="badge" id="activeSince">Active Since: —</div>
+          </div>
+
+          <div style="display:flex; gap:12px; margin-top:12px; flex-wrap:wrap;">
+            <div style="flex:1 1 280px;">
+              <div style="margin-bottom:6px;" class="muted">Message Summary</div>
+              <div id="summaryMini" class="muted">—</div>
+            </div>
+            <div style="flex:1 1 140px;">
+              <div style="margin-bottom:6px;" class="muted">Top Participant</div>
+              <div id="topParticipant" class="muted">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel hud" style="margin-bottom:14px;">
+          <h2>Activity by Month</h2>
+          <canvas id="activityChart"></canvas>
+        </div>
+
+        <div class="panel hud" style="margin-bottom:14px;">
+          <h2>Sentiment / Relationship</h2>
+          <canvas id="sentimentChart"></canvas>
+          <div style="margin-top:8px;" class="muted" id="relMeter">Relation: —</div>
+        </div>
+
+        <div class="panel hud">
+          <h2>Heatmap — Last 30 days</h2>
+          <div id="heat" style="display:flex; flex-wrap:wrap; gap:4px;"></div>
+          <div style="margin-top:8px;" class="muted">Heat intensity -> more messages = brighter green</div>
+        </div>
+      </div>
+
+      <!-- right: details -->
+      <div>
+        <div class="panel hud">
+          <h2>Detailed Stats</h2>
+          <div id="detailedList" class="muted">Upload chat to show details.</div>
+        </div>
+
+        <div class="panel hud" style="margin-top:12px;">
+          <h2>First Message</h2>
+          <div id="firstInfo" class="muted">—</div>
+        </div>
+
+        <div class="panel hud" style="margin-top:12px;">
+          <h2>History (local)</h2>
+          <ul id="historyList" class="history"></ul>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button id="clearHistory" class="btn">Clear</button>
+            <button id="downloadJson" class="btn">Download JSON</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer">© <strong>Alzahir Khan</strong> — Hacker Edition • Local browser only • No uploads</div>
+  </div>
+
+<!-- ==== SCRIPT: matrix animation + processors ==== -->
+<script>
+/* ---------------- MATRIX RAIN BACKGROUND ---------------- */
+(function matrix(){
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+  function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; init(); }
+  window.addEventListener('resize', resize);
+  let columns = [], fontSize = 16;
+  function init(){
+    fontSize = Math.max(12, Math.min(20, Math.round(innerWidth / 80)));
+    const cols = Math.floor(canvas.width / fontSize);
+    columns = new Array(cols).fill(0).map(()=> Math.floor(Math.random()*canvas.height/fontSize));
+    ctx.font = fontSize+'px monospace';
+  }
+  resize();
+  const chars = '01█▓▒░<>[]{}()<>/\\|abcdefghijklmnopqrstuvwxyz0123456789';
+  function draw(){
+    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = 'rgba(0,255,150,0.9)';
+    for(let i=0;i<columns.length;i++){
+      const x = i*fontSize;
+      const y = columns[i]*fontSize;
+      const text = chars.charAt(Math.floor(Math.random()*chars.length));
+      ctx.fillText(text, x, y);
+      if(y > canvas.height && Math.random() > 0.975) columns[i] = 0;
+      columns[i]++;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ---------------- Helpers & libs ---------------- */
+function el(id){ return document.getElementById(id); }
+function fmt(d){ if(!(d instanceof Date)) d = new Date(d); return (d.getMonth()+1)+'/'+d.getDate()+'/'+String(d.getFullYear()).slice(-2); }
+
+/* Minimal sentiment lists */
+const POS = ['good','great','nice','love','thanks','happy','ok','okey','awesome','cool','congrats'];
+const NEG = ['bad','hate','angry','stupid','sad','sorry','problem','broke','nope','wtf'];
+
+/* UI refs */
+const fileInput = el('fileInput'), scanBtn = el('scanBtn'), exportBtn = el('exportBtn');
+const activityCtx = el('activityChart').getContext('2d'), sentimentCtx = el('sentimentChart').getContext('2d');
+const topBadges = el('topBadges'), activeSince = el('activeSince'), summaryMini = el('summaryMini');
+const topParticipant = el('topParticipant'), detailedList = el('detailedList'), firstInfo = el('firstInfo');
+const heatRoot = el('heat'), historyList = el('historyList'), clearHistory = el('clearHistory');
+const relMeter = el('relMeter'), downloadJson = el('downloadJson');
+let activityChart=null, sentimentChart=null;
+
+/* History stored locally */
+function loadHistory(){
+  const arr = JSON.parse(localStorage.getItem('wa_hack_hist')||'[]');
+  historyList.innerHTML = '';
+  arr.slice().reverse().forEach(h=>{
+    const li = document.createElement('li');
+    li.textContent = `${h.label} — ${h.first} — ${h.count} msgs`;
+    historyList.appendChild(li);
+  });
+}
+function pushHistory(obj){
+  const arr = JSON.parse(localStorage.getItem('wa_hack_hist')||'[]');
+  arr.push(obj); while(arr.length>60) arr.shift();
+  localStorage.setItem('wa_hack_hist', JSON.stringify(arr));
+  loadHistory();
+}
+clearHistory.onclick = ()=>{ if(confirm('Clear local history?')) { localStorage.removeItem('wa_hack_hist'); loadHistory(); } };
+downloadJson.onclick = ()=>{ const a=document.createElement('a'); a.href='data:application/json,'+encodeURIComponent(localStorage.getItem('wa_hack_hist')||'[]'); a.download='wa-history.json'; a.click(); };
+
+/* Drag/drop support */
+window.addEventListener('dragover', e=>e.preventDefault());
+window.addEventListener('drop', e=>{
+  e.preventDefault();
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if(f && f.name.endsWith('.txt')) { fileInput.files = e.dataTransfer.files; processFile(); }
+});
+
+/* Regex set to detect common exported formats */
+const dateRegexes = [
+  // MM/DD/YY, HH:MM - Name: msg
+  /^(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2})(?:\s[APMapm]{2})?/,
+  // DD/MM/YYYY, HH:MM - Name: msg
+  /^(\d{1,2}\/\d{1,2}\/\d{4}),?\s+(\d{1,2}:\d{2})/,
+  // 2021-12-31, 23:59 - Name: msg
+  /^(\d{4}-\d{1,2}-\d{1,2}),?\s+(\d{1,2}:\d{2})/
+];
+
+/* Attempt to parse lines into {date,sender,text} objects */
+function parseWhatsAppText(fullText){
+  const lines = fullText.split(/\r?\n/).filter(l=>l.trim().length>0);
+  const msgs = [];
+  const common = /^(.+?) - (.+?): (.*)$/;
+  for(let line of lines){
+    let matched=false;
+    for(let rx of dateRegexes){
+      const m = line.match(rx);
+      if(m){
+        const rest = line.slice(m[0].length).trim();
+        const sec = rest.match(/^[-–:\s]+(.+?):\s?(.*)$/);
+        let sender=null, text=rest;
+        if(sec){ sender = sec[1]; text = sec[2]; }
+        // parse date/time using Date constructor fallback
+        let dt = null;
+        const dstr = m[1], tstr = m[2]||'00:00';
+        try{
+          if(/\d{4}-\d{1,2}-\d{1,2}/.test(dstr)) dt = new Date(dstr + ' ' + tstr);
+          else dt = new Date(dstr + ' ' + tstr);
+          if(isNaN(dt.getTime())){
+            // try swap parts if ambiguous dd/mm
+            const parts = dstr.split('/');
+            if(parts.length===3){
+              const [a,b,c]=parts; // try as dd/mm/yyyy
+              dt = new Date(`${c}-${b}-${a} ${tstr}`);
+            }
+          }
+        } catch(e){ dt = new Date(); }
+        msgs.push({date: dt, sender: sender||'Unknown', text: text||''});
+        matched=true; break;
+      }
+    }
+    if(!matched){
+      const m2 = line.match(common);
+      if(m2) msgs.push({date: new Date(m2[1]), sender:m2[2], text:m2[3]});
+      else {
+        // continuation: append to last
+        if(msgs.length>0) msgs[msgs.length-1].text += ("\n"+line);
+        else msgs.push({date:new Date(), sender:'Unknown', text:line});
+      }
+    }
+  }
+  return msgs;
+}
+
+/* Main processing */
+async function processFile(){
+  const f = fileInput.files[0];
+  if(!f){ alert('Please choose exported WhatsApp .txt file.'); return; }
+  const txt = await f.text();
+  const msgs = parseWhatsAppText(txt);
+  if(!msgs.length){ alert('No messages parsed. Check exported format.'); return; }
+  msgs.sort((a,b)=> a.date - b.date);
+
+  // Stats
+  const total = msgs.length;
+  const participants = {};
+  let media=0, pos=0, neg=0;
+  const daily = {}, monthly={};
+  for(let m of msgs){
+    const s = m.sender||'Unknown';
+    participants[s] = (participants[s]||0)+1;
+    if(/<Media omitted>|<Media omitted>|<attached|image omitted|<media omitted>/i.test(m.text)) media++;
+    const raw = (m.text||'').toLowerCase();
+    POS_LOOP: for(let p of POS) if(raw.includes(p)){ pos++; break POS_LOOP; }
+    NEG_LOOP: for(let n of NEG) if(raw.includes(n)){ neg++; break NEG_LOOP; }
+    const y = m.date.getFullYear(), mm = String(m.date.getMonth()+1).padStart(2,'0'), dd = String(m.date.getDate()).padStart(2,'0');
+    const dkey = `${y}-${mm}-${dd}`, mkey = `${y}-${mm}`;
+    daily[dkey] = (daily[dkey]||0)+1; monthly[mkey] = (monthly[mkey]||0)+1;
+  }
+
+  // first / last
+  const first = msgs[0], last = msgs[msgs.length-1];
+  el('activeSince').textContent = 'Active Since: ' + fmt(first.date);
+
+  // top participant
+  const top = Object.entries(participants).sort((a,b)=>b[1]-a[1])[0] || ['Unknown',0];
+  topParticipant.textContent = `${top[0]} — ${top[1]} msgs`;
+
+  // summary small
+  summaryMini.textContent = `${total} msgs • media ${media} • participants ${Object.keys(participants).length}`;
+
+  // relationship heuristic
+  const ratio = top[1]/Math.max(1,total);
+  let rel = 'Unknown';
+  if(ratio>0.6) rel='Primary Contact';
+  else if(ratio>0.3) rel='Frequent';
+  else rel='Low interaction / Group';
+  relMeter.textContent = `Relationship: ${rel}`;
+
+  // Detailed list
+  const detailHtml = [];
+  detailHtml.push(`Total messages: ${total}`);
+  detailHtml.push(`Media messages: ${media}`);
+  detailHtml.push(`Participants: ${Object.keys(participants).length}`);
+  detailHtml.push(`Time range: ${fmt(first.date)} → ${fmt(last.date)}`);
+  detailedList.innerHTML = detailHtml.join(' • ');
+
+  // First message
+  firstInfo.innerHTML = `<strong>${fmt(first.date)}</strong> by <strong>${first.sender}</strong><div style="margin-top:6px;color:#9ff7ee">${(first.text||'').slice(0,160)}</div>`;
+
+  // push to history
+  pushHistory({label: top[0], first: fmt(first.date), count: total});
+
+  // draw charts
+  drawActivityChart(monthly);
+  drawSentimentChart(pos,neg,total);
+  drawHeatmap(daily);
+}
+
+/* Draw activity (monthly) */
+function drawActivityChart(monthlyData){
+  const months = Object.keys(monthlyData).sort();
+  const labels = months.map(m=>m);
+  const data = months.map(m=>monthlyData[m]);
+  if(activityChart) activityChart.destroy();
+  activityChart = new Chart(activityCtx, {
+    type:'bar',
+    data:{
+      labels, datasets:[{ label:'Messages', data, backgroundColor:'rgba(0,255,150,0.85)' }]
+    },
+    options:{ plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ color:'#9efbd0' } }, y:{ ticks:{ color:'#9efbd0' } } } }
+  });
+}
+
+/* Sentiment donut */
+function drawSentimentChart(pos,neg,total){
+  const neu = Math.max(0, total - pos - neg);
+  if(sentimentChart) sentimentChart.destroy();
+  sentimentChart = new Chart(sentimentCtx, {
+    type:'doughnut',
+    data:{ labels:['Positive','Negative','Neutral'], datasets:[{ data:[pos,neg,neu], backgroundColor:['#00ff9c','#ff6b6b','#3aa8c9'] }] },
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ color:'#bff7ef' } } } }
+  });
+}
+
+/* Heatmap last 30 days */
+function drawHeatmap(daily){
+  heatRoot.innerHTML='';
+  const days = 30;
+  const now = new Date();
+  for(let i=days-1;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate()-i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+    const key = `${y}-${m}-${dd}`;
+    const val = daily[key] || 0;
+    const div = document.createElement('div');
+    div.style.width='18px'; div.style.height='18px'; div.style.borderRadius='4px'; div.style.margin='2px';
+    if(val===0) div.style.background='rgba(255,255,255,0.03)';
+    else {
+      const intensity = Math.min(1, Math.log(val+1)/Math.log(10));
+      div.style.background = `rgba(0,255,150,${0.12 + 0.78*intensity})`;
+      div.title = `${key}: ${val} msgs`;
+    }
+    heatRoot.appendChild(div);
+  }
+}
+
+/* Export PDF minimal */
+exportBtn.addEventListener('click', async ()=>{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.text('WhatsApp Age Check — Hacker Report', 14, 20);
+  doc.setFontSize(10);
+  const s = el('summaryMini').textContent || '';
+  doc.text('Summary: ' + s, 14, 34);
+  doc.text('First message: ' + (el('firstInfo').innerText||''), 14, 44);
+  doc.save('wa-hacker-report.pdf');
+});
+
+/* Wire scan button */
+scanBtn.addEventListener('click', processFile);
+
+/* load history initially */
+loadHistory();
+
+/* auto-process if file chosen */
+fileInput.addEventListener('change', ()=>{ if(fileInput.files.length) processFile(); });
+
+</script>
+</body>
+</html>
